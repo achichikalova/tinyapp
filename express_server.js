@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
-function generateRandomString() {
+const generateRandomString = () => {
   return Math.random().toString(36).substr(2, 6);
 };
 
