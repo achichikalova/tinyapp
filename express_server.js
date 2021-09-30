@@ -1,12 +1,23 @@
 const express = require("express");
 const app = express(); // creating an Express app
+const path = require("path");
 const cookieParser = require('cookie-parser');
-app.use(cookieParser()); // activate cookieParser
-const PORT = 8080;
 const bodyParser = require("body-parser");
+const PORT = 8080;
 
+app.use(cookieParser()); // activate cookieParser
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs"); // Setting ejs as the template engine
+
+app.get('/',(req, res) => {
+  const userId = req.cookies['user_id'];
+  const loggedInUser = users[userId];
+	const allowedPaths = ["/", "/login"];
+
+	if (!loggedInUser && allowedPaths.includes(path)) {
+		res.redirect("/login");
+	}
+});
 
 const generateRandomString = () => {
   return Math.random().toString(36).substr(2, 6);
@@ -14,8 +25,22 @@ const generateRandomString = () => {
 
 // In memory database
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "fgdr5n"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "fgdr5n"
+  },
+  hg6g4j: {
+    longURL: "https://getbootstrap.com/",
+    userID: "dhd5hg"
+  },
+  bhggh4: {
+    longURL: "http://expressjs.com/",
+    userID: "dhd5hg"
+  }
 };
 
 const users = {
@@ -42,7 +67,7 @@ const findUserByEmail = (email, usersDb) => { //Check if user already exists
   return false;
 };
 
-const createUser = (email, password, usersDb) => {  // Create a new user
+const createUser = (email, password, usersDb, urlsDb) => {  // Create a new user
   const userId = generateRandomString();
   usersDb[userId] = {
     id: userId,
@@ -85,6 +110,7 @@ app.post('/register', (req, res) => {
   const userId = createUser(email, password, users); //use helper function to create a new user in usersDb and get the id
   res.cookie('user_id', userId);
   res.redirect('/urls');
+
 });
 
 app.get('/login', (req, res) => {
@@ -119,7 +145,7 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const userId = req.cookies['user_id'];
   const loggedInUser = users[userId];
-  const templateVars = { urls: urlDatabase, user: loggedInUser };
+  const templateVars = { urls: urlDatabase, users: users, user: loggedInUser, id: userId };
   res.render("urls_index", templateVars);
 });
 
@@ -127,7 +153,10 @@ app.get("/urls/new", (req, res) => {
   const userId = req.cookies['user_id'];
   const loggedInUser = users[userId];
   const templateVars = { user: loggedInUser };
-  res.render("urls_new", templateVars);
+  if (loggedInUser) {
+    res.render("urls_new", templateVars);
+  }
+  res.redirect("/login");
 });
 
 app.post("/urls", (req, res) => {
@@ -139,27 +168,34 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const userId = req.cookies['user_id'];
   const loggedInUser = users[userId];
-  const templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.shortURL], user: loggedInUser };
-  res.render("urls_show", templateVars);
+  const templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], user: loggedInUser };
+  if (loggedInUser) {
+    res.render("urls_show", templateVars);
+  }
+  res.redirect("/login");
 });
-
 
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
-  res.redirect(`/urls/${shortURL}`);
+  res.redirect(`/urls/${shortURL}`); //PROBLEM HERE: not redirect from edit page when submit edited url
 });
 
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
+  console.log(longURL)
   res.redirect(longURL);
 });
 
-
 app.post("/urls/:id/delete", (req, res) => {
+  const userId = req.cookies['user_id'];
+  const loggedInUser = users[userId];
   const shortURL = req.params.id;
-  delete urlDatabase[shortURL];
-  res.redirect("/urls");
+  if (loggedInUser) {
+    delete urlDatabase[shortURL];
+    res.redirect("/urls");
+  }
+  res.redirect("/login");
 });
 
 app.post('/urls/:id', (req, res) => {
