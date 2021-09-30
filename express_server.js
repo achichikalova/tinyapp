@@ -65,7 +65,6 @@ app.get("/", (req, res) => {
   res.redirect('/urls');
 });
 
-
 app.get('/register', (req, res) => {
   const userId = req.cookies['user_id'];
   const loggedInUser = users[userId];
@@ -90,7 +89,7 @@ app.post('/register', (req, res) => {
 
 app.get('/login', (req, res) => {
   const templateVars = { user: null };
-  res.render('/urls_login', templateVars);
+  res.render('urls_login', templateVars);
 });
 
 app.post('/login', (req, res) => {
@@ -98,7 +97,7 @@ app.post('/login', (req, res) => {
   const user = authenticateUser(email, password, users);
   if (user) {
     res.cookie('user_id', user.id);
-    res.redirect('/urls');
+    res.redirect('urls');
   }
   res.status(403).send('Wrong credentials!');
 });
@@ -124,25 +123,6 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect("/urls");
-});
-
-app.get("/urls/:shortURL", (req, res) => {
-  const userId = req.cookies['user_id'];
-  const loggedInUser = users[userId];
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: loggedInUser };
-  res.render("urls_show", templateVars);
-});
-
-app.get("/u/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
-  res.redirect(longURL);
-});
-
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies['user_id'];
   const loggedInUser = users[userId];
@@ -150,13 +130,34 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-app.post("/urls/:shortURL/edit", (req, res) => {
-  const shortURL = req.params.shortURL;
+app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect("/urls");
+});
+
+app.get("/urls/:id", (req, res) => {
+  const userId = req.cookies['user_id'];
+  const loggedInUser = users[userId];
+  const templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.shortURL], user: loggedInUser };
+  res.render("urls_show", templateVars);
+});
+
+
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
   res.redirect(`/urls/${shortURL}`);
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortURL = req.params.shortURL;
+app.get("/u/:id", (req, res) => {
+  const shortURL = req.params.id;
+  const longURL = urlDatabase[shortURL];
+  res.redirect(longURL);
+});
+
+
+app.post("/urls/:id/delete", (req, res) => {
+  const shortURL = req.params.id;
   delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
