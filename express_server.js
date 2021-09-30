@@ -3,6 +3,7 @@ const app = express(); // creating an Express app
 const path = require("path");
 const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
+const bcrypt = require('bcryptjs');
 const PORT = 8080;
 
 app.use(cookieParser()); // activate cookieParser
@@ -42,17 +43,18 @@ const urlDatabase = {
     userID: "dhd5hg"
   }
 };
-
+const hashedPassword1 = bcrypt.hashSync("purple-monkey-dinosaur", 10);
+const hashedPassword2 = bcrypt.hashSync("dishwasher-funk", 10);
 const users = {
   "fgdr5n": {
     id: "fgdr5n",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: hashedPassword1
   },
   "dhd5hg": {
     id: "dhd5hg",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: hashedPassword2
   }
 };
 
@@ -67,21 +69,21 @@ const findUserByEmail = (email, usersDb) => { //Check if user already exists
   return false;
 };
 
-const createUser = (email, password, usersDb, urlsDb) => {  // Create a new user
+const createUser = (email, password, usersDb) => {  // Create a new user
   const userId = generateRandomString();
   usersDb[userId] = {
     id: userId,
     email,
-    password
+    password: bcrypt.hashSync(password, 10)
   };
   return userId;
 };
 
 const authenticateUser = (email, password, usersDb) => { // Check and retrieve the user from the userDb
   const userFound = findUserByEmail(email, usersDb);
-  
-  if (userFound && userFound.password === password) { // Check if password is correct
-    return userFound; // Return user if password is correct
+  if (userFound) {
+  } if (bcrypt.compareSync(password, userFound.password)) { // Check if password is correct
+    return userFound; // Return user if password is correct    
   }
   return false; // Return false if password is not correct
 };
