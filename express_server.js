@@ -1,22 +1,27 @@
-const express = require("express");
+const express = require('express');
 const app = express(); // creating an Express app
-const path = require("path");
-const cookieParser = require('cookie-parser');
-const bodyParser = require("body-parser");
+const path = require('path');
+const cookieParser = require("cookie-parser");
+const cookieSession = require('cookie-session');
+const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const PORT = 8080;
 
-app.use(cookieParser()); // activate cookieParser
+app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['hello from the other side', 'cool thing we are doing']
+}));
 app.use(bodyParser.urlencoded({extended: true}));
-app.set("view engine", "ejs"); // Setting ejs as the template engine
+app.set('view engine', 'ejs'); // Setting ejs as the template engine
 
 app.get('/',(req, res) => {
   const userId = req.cookies['user_id'];
   const loggedInUser = users[userId];
-	const allowedPaths = ["/", "/login"];
+	const allowedPaths = ['/', '/login'];
 
 	if (!loggedInUser && allowedPaths.includes(path)) {
-		res.redirect("/login");
+		res.redirect('/login');
 	}
 });
 
@@ -27,33 +32,33 @@ const generateRandomString = () => {
 // In memory database
 const urlDatabase = {
   b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "fgdr5n"
+    longURL: 'https://www.tsn.ca',
+    userID: 'fgdr5n'
   },
   i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "fgdr5n"
+    longURL: 'https://www.google.ca',
+    userID: 'fgdr5n'
   },
   hg6g4j: {
-    longURL: "https://getbootstrap.com/",
-    userID: "dhd5hg"
+    longURL: 'https://getbootstrap.com/',
+    userID: 'dhd5hg'
   },
   bhggh4: {
-    longURL: "http://expressjs.com/",
-    userID: "dhd5hg"
+    longURL: 'http://expressjs.com/',
+    userID: 'dhd5hg'
   }
 };
-const hashedPassword1 = bcrypt.hashSync("purple-monkey-dinosaur", 10);
-const hashedPassword2 = bcrypt.hashSync("dishwasher-funk", 10);
+const hashedPassword1 = bcrypt.hashSync('purple-monkey-dinosaur', 10);
+const hashedPassword2 = bcrypt.hashSync('dishwasher-funk', 10);
 const users = {
-  "fgdr5n": {
-    id: "fgdr5n",
-    email: "user@example.com",
+  'fgdr5n': {
+    id: 'fgdr5n',
+    email: 'user@example.com',
     password: hashedPassword1
   },
-  "dhd5hg": {
-    id: "dhd5hg",
-    email: "user2@example.com",
+  'dhd5hg': {
+    id: 'dhd5hg',
+    email: 'user2@example.com',
     password: hashedPassword2
   }
 };
@@ -88,12 +93,12 @@ const authenticateUser = (email, password, usersDb) => { // Check and retrieve t
   return false; // Return false if password is not correct
 };
 
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.redirect('/urls');
 });
 
 app.get('/register', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session.user_id;
   const loggedInUser = users[userId];
   const templateVars = { user: loggedInUser };
   res.render('urls_register', templateVars);
@@ -110,7 +115,7 @@ app.post('/register', (req, res) => {
     return;
   }
   const userId = createUser(email, password, users); //use helper function to create a new user in usersDb and get the id
-  res.cookie('user_id', userId);
+  req.session.user_id = user.id;
   res.redirect('/urls');
 
 });
@@ -123,81 +128,81 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const {email, password} = req.body;
   const user = authenticateUser(email, password, users);
-  if (user) {
-    res.cookie('user_id', user.id);
-    res.redirect('urls');
+  if (!user) {
+    return res.status(403).send('Wrong credentials!');
   }
-  res.status(403).send('Wrong credentials!');
+  req.session.user_id = user.id;
+  return res.redirect('urls');
 });
 
 app.post('/logout', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session.user_id;
   res.clearCookie('user_id', userId);
   res.redirect('/urls');
 });
 
-app.get("/urls.json", (req, res) => {
+app.get('/urls.json', (req, res) => {
   res.render(urlDatabase);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+app.get('/hello', (req, res) => {
+  res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
-app.get("/urls", (req, res) => {
-  const userId = req.cookies['user_id'];
+app.get('/urls', (req, res) => {
+  const userId = req.session.user_id;
   const loggedInUser = users[userId];
   const templateVars = { urls: urlDatabase, users: users, user: loggedInUser, id: userId };
-  res.render("urls_index", templateVars);
+  res.render('urls_index', templateVars);
 });
 
-app.get("/urls/new", (req, res) => {
-  const userId = req.cookies['user_id'];
+app.get('/urls/new', (req, res) => {
+  const userId = req.session.user_id;
   const loggedInUser = users[userId];
   const templateVars = { user: loggedInUser };
   if (loggedInUser) {
-    res.render("urls_new", templateVars);
+    res.render('urls_new', templateVars);
   }
-  res.redirect("/login");
+  res.redirect('/login');
 });
 
-app.post("/urls", (req, res) => {
+app.post('/urls', (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
-  res.redirect("/urls");
+  res.redirect('/urls');
 });
 
-app.get("/urls/:id", (req, res) => {
-  const userId = req.cookies['user_id'];
+app.get('/urls/:id', (req, res) => {
+  const userId = req.session.user_id;
   const loggedInUser = users[userId];
   const templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], user: loggedInUser };
   if (loggedInUser) {
-    res.render("urls_show", templateVars);
+    res.render('urls_show', templateVars);
   }
-  res.redirect("/login");
+  res.redirect('/login');
 });
 
-app.post("/urls/:id", (req, res) => {
+app.post('/urls/:id', (req, res) => {
   const shortURL = req.params.id;
   res.redirect(`/urls/${shortURL}`); //PROBLEM HERE: not redirect from edit page when submit edited url
 });
 
-app.get("/u/:id", (req, res) => {
+app.get('/u/:id', (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL].longURL;
   console.log(longURL)
   res.redirect(longURL);
 });
 
-app.post("/urls/:id/delete", (req, res) => {
-  const userId = req.cookies['user_id'];
+app.post('/urls/:id/delete', (req, res) => {
+  const userId = req.session.user_id;
   const loggedInUser = users[userId];
   const shortURL = req.params.id;
   if (loggedInUser) {
     delete urlDatabase[shortURL];
-    res.redirect("/urls");
+    res.redirect('/urls');
   }
-  res.redirect("/login");
+  res.redirect('/login');
 });
 
 app.post('/urls/:id', (req, res) => {
