@@ -139,16 +139,16 @@ app.post('/urls', (req, res) => {
   res.redirect('/urls');
 });
 
-// app.get('/urls/new', (req, res) => {
-//   const userId = req.session.user_id;
-//   const loggedInUser = users[userId];
-//   const templateVars = { user: loggedInUser };
-//   if (!loggedInUser) {
-//     res.redirect('/login');
-//     return;
-//   }  
-//   res.render('urls_new', templateVars);
-// });
+app.get('/urls/new', (req, res) => {
+  const userId = req.session.user_id;
+  const loggedInUser = users[userId];
+  const templateVars = { user: loggedInUser };
+  if (!loggedInUser) {
+    res.redirect('/login');
+    return;
+  }  
+  res.render('urls_new', templateVars);
+});
 
 app.get('/urls/:id', (req, res) => {
   const userId = req.session.user_id;
