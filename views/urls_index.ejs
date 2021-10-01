@@ -11,7 +11,9 @@
 <body>
   <%- include('partials/_header') %>
   <% if (!user) {%> 
-    <h4 class="card text-white bg-warning m-3 p-3" style="max-width: 50vw;">To use our service you need to register/login.</h1>
+    <div class="card text-white bg-warning justify-content-center align-self-center m-2 p-2" style="max-width: auto;">
+      <div class="row justify-content-center align-self-center" style="font-size: 1em;">Welcome to TinyApp! To use our service you need to register or login.</div>
+    </div>
   <% } else {%> 
     <main style="margin: 1em;">
       <h3>My URLs</h3>

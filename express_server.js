@@ -53,6 +53,10 @@ const users = {
   }
 };
 
+app.get('/', (req, res) => {
+  res.redirect('/urls');
+});
+
 app.get('/register', (req, res) => {
   const userId = req.session.userId;
   const loggedInUser = users[userId];
