@@ -170,12 +170,12 @@ app.post('/urls/:id', (req, res) => {
   res.redirect('/urls');
 });
 
-// app.get('/u/:id', (req, res) => {
-//   const shortURL = req.params.id;
-//   const longURL = urlDatabase[shortURL].longURL;
-//   console.log(longURL)
-//   res.redirect(longURL);
-// });
+app.get('/u/:id', (req, res) => {
+  const shortURL = req.params.id;
+  const longURL = urlDatabase[shortURL].longURL;
+  console.log(longURL)
+  res.redirect(longURL);
+});
 
 app.post('/urls/:id/delete', (req, res) => {
   const userId = req.session.user_id;
