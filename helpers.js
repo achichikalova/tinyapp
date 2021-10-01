@@ -1,3 +1,7 @@
+const generateRandomString = () => {
+  return Math.random().toString(36).substr(2, 6);
+};
+
 const bcrypt = require('bcryptjs');
 //Helper Functions
 const findUserByEmail = (email, usersDb) => { //Check if user already exists

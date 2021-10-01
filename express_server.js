@@ -66,28 +66,28 @@ const users = {
   }
 };
 
-// app.get('/register', (req, res) => {
-//   const userId = req.session.user_id;
-//   const loggedInUser = users[userId];
-//   const templateVars = { user: loggedInUser };
-//   res.render('urls_register', templateVars);
-// });
+app.get('/register', (req, res) => {
+  const userId = req.session.user_id;
+  const loggedInUser = users[userId];
+  const templateVars = { user: loggedInUser };
+  res.render('urls_register', templateVars);
+});
 
-// app.post('/register', (req, res) => {
-//   const {email, password} = req.body;
-//   const userFound = findUserByEmail(email, users); //use helper function to check if user already exists
-//   if (email.length === 0 | password.length === 0) {
-//     res.status(400).send('Please enter your credentials.');
-//   }
-//   if (userFound) {
-//     res.status(401).send('Sorry, that user already exists!');
-//     return;
-//   }
-//   const userId = createUser(email, password, users); //use helper function to create a new user in usersDb and get the id
-//   req.session.user_id = user.id;
-//   res.redirect('/urls');
+app.post('/register', (req, res) => {
+  const {email, password} = req.body;
+  const userFound = findUserByEmail(email, users); //use helper function to check if user already exists
+  if (email.length === 0 | password.length === 0) {
+    res.status(400).send('Please enter your credentials.');
+  }
+  if (userFound) {
+    res.status(401).send('Sorry, that user already exists!');
+    return;
+  }
+  const userId = createUser(email, password, users); //use helper function to create a new user in usersDb and get the id
+  req.session.user_id = userId;
+  res.redirect('/urls');
 
-// });
+});
 
 app.get('/login', (req, res) => {
   const templateVars = { user: null };
@@ -111,7 +111,6 @@ app.post('/logout', (req, res) => {
 
 const extractUrlsForUser = (db, id) => {
   let new_db = {};
-  // console.log(db)
   for (let key in db) {
     if (db[key].userID === id) {
       new_db[key] = {
@@ -125,7 +124,6 @@ const extractUrlsForUser = (db, id) => {
 app.get('/urls', (req, res) => {
   const userId = req.session.user_id;
   const loggedInUser = users[userId];
-  // console.log(urlDatabase)
   const user_urls = extractUrlsForUser(urlDatabase, userId);
   const templateVars = { urls: user_urls, user: loggedInUser, id: userId };
   res.render('urls_index', templateVars);
@@ -146,7 +144,7 @@ app.get('/urls/new', (req, res) => {
   if (!loggedInUser) {
     res.redirect('/login');
     return;
-  }  
+  }
   res.render('urls_new', templateVars);
 });
 
@@ -162,10 +160,8 @@ app.get('/urls/:id', (req, res) => {
 });
 
 app.post('/urls/:id', (req, res) => {
-  console.log("edit")
   const shortURL = req.params.id;
   const urlContent = req.body.urlContent;
-  console.log(shortURL, urlContent);
   urlDatabase[shortURL].longURL = urlContent;
   res.redirect('/urls');
 });
@@ -173,7 +169,6 @@ app.post('/urls/:id', (req, res) => {
 app.get('/u/:id', (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL].longURL;
-  console.log(longURL)
   res.redirect(longURL);
 });
 
@@ -181,11 +176,11 @@ app.post('/urls/:id/delete', (req, res) => {
   const userId = req.session.user_id;
   const loggedInUser = users[userId];
   const shortURL = req.params.id;
-  if (loggedInUser) {
-    delete urlDatabase[shortURL];
-    res.redirect('/urls');
+  if (!loggedInUser) {
+    return res.redirect('/login');
   }
-  res.redirect('/login');
+  delete urlDatabase[shortURL];
+  return res.redirect('/urls');
 });
 
 app.listen(PORT, () => {
