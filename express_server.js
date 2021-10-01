@@ -177,16 +177,16 @@ app.post('/urls/:id', (req, res) => {
 //   res.redirect(longURL);
 // });
 
-// app.post('/urls/:id/delete', (req, res) => {
-//   const userId = req.session.user_id;
-//   const loggedInUser = users[userId];
-//   const shortURL = req.params.id;
-//   if (loggedInUser) {
-//     delete urlDatabase[shortURL];
-//     res.redirect('/urls');
-//   }
-//   res.redirect('/login');
-// });
+app.post('/urls/:id/delete', (req, res) => {
+  const userId = req.session.user_id;
+  const loggedInUser = users[userId];
+  const shortURL = req.params.id;
+  if (loggedInUser) {
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
+  }
+  res.redirect('/login');
+});
 
 app.listen(PORT, () => {
   console.log(`Tinyapp listening on port ${PORT}!`);
